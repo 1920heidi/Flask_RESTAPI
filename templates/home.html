@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+
+{% block title %}
+Home
+{% endblock %}
+
+
+{% block content %}
+
+<div class="home-page">
+
+    <div class="page-header">
+
+        <h1>
+            Inventory Management System
+        </h1>
+
+        <p>
+            Welcome to the administrator portal.
+        </p>
+
+    </div>
+
+
+    <div class="card home-card">
+
+        <h2>
+            Welcome
+        </h2>
+
+        <p>
+            This system allows administrators to manage inventory,
+            search external product information using OpenFoodFacts,
+            and maintain stock information.
+        </p>
+
+        <p>
+            Use the inventory management portal to add products,
+            search product information, and manage your inventory.
+        </p>
+
+
+        <div class="home-button-container">
+
+            <a
+                href="/admin"
+                class="home-action-button"
+            >
+                Manage Inventory
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
