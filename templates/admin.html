@@ -1,0 +1,499 @@
+{% extends "base.html" %}
+
+{% block title %}
+Inventory Management
+{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <h1>Inventory Management</h1>
+
+    <p>
+        Search products using OpenFoodFacts,
+        add products to inventory,
+        and manage existing inventory records.
+    </p>
+</div>
+
+
+<!-- ============================= -->
+<!-- SEARCH OPENFOODFACTS -->
+<!-- ============================= -->
+
+<div class="card">
+
+    <h2>Search Product by Barcode</h2>
+
+    <p>
+        Enter a barcode to retrieve product details
+        from OpenFoodFacts.
+    </p>
+
+    <div class="search-container">
+
+        <form
+            action="/admin/search-api"
+            method="POST"
+        >
+
+            <div class="search-box">
+
+                <input
+                    type="text"
+                    name="barcode"
+                    placeholder="Enter barcode e.g. 3017620422003"
+                    required
+                >
+
+                <button type="submit">
+                    Search
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+
+    {% if api_error %}
+
+        <div class="error">
+            {{ api_error }}
+        </div>
+
+    {% endif %}
+
+
+    {% if api_product %}
+
+        <div class="api-result">
+
+            <h3>Product Found</h3>
+
+            <p>
+                <strong>Product Name:</strong>
+                {{ api_product.product_name }}
+            </p>
+
+            <p>
+                <strong>Brand:</strong>
+                {{ api_product.brand or "-" }}
+            </p>
+
+            <p>
+                <strong>Barcode:</strong>
+                {{ api_product.barcode }}
+            </p>
+
+            <p>
+                <strong>Ingredients:</strong>
+                {{ api_product.ingredients or "Not available" }}
+            </p>
+
+
+            <h3>Add This Product to Inventory</h3>
+
+            <form
+                action="/admin/add-from-api/{{ api_product.barcode }}"
+                method="POST"
+            >
+
+                <div class="form-grid">
+
+                    <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        name="price"
+                        placeholder="Selling Price"
+                        required
+                    >
+
+                    <input
+                        type="number"
+                        min="0"
+                        name="stock"
+                        placeholder="Stock Quantity"
+                        required
+                    >
+
+                </div>
+
+                <br>
+
+                <button type="submit">
+                    Add to Inventory
+                </button>
+
+            </form>
+
+        </div>
+
+    {% endif %}
+
+</div>
+
+
+<!-- ============================= -->
+<!-- ADD PRODUCT MANUALLY -->
+<!-- ============================= -->
+
+<div class="card">
+
+    <h2>Add Product Manually</h2>
+
+    <form
+        action="/admin/add"
+        method="POST"
+    >
+
+        <div class="form-grid">
+
+            <input
+                type="text"
+                name="product_name"
+                placeholder="Product Name"
+                required
+            >
+
+            <input
+                type="text"
+                name="brand"
+                placeholder="Brand"
+            >
+
+            <input
+                type="text"
+                name="barcode"
+                placeholder="Barcode"
+            >
+
+            <input
+                type="number"
+                step="0.01"
+                min="0"
+                name="price"
+                placeholder="Price"
+                required
+            >
+
+            <input
+                type="number"
+                min="0"
+                name="stock"
+                placeholder="Stock"
+                required
+            >
+
+        </div>
+
+        <br>
+
+        <button type="submit">
+            Add Product
+        </button>
+
+        <button
+            type="reset"
+            class="button-secondary"
+        >
+            Clear
+        </button>
+
+    </form>
+
+</div>
+
+
+<!-- ============================= -->
+<!-- CURRENT INVENTORY -->
+<!-- ============================= -->
+
+<div class="card">
+
+    <h2>Current Inventory</h2>
+
+    {% if inventory %}
+
+        <div class="table-wrapper">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+                        <th>ID</th>
+                        <th>Product</th>
+                        <th>Brand</th>
+                        <th>Barcode</th>
+                        <th>Price</th>
+                        <th>Stock</th>
+                        <th>Actions</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% for item in inventory %}
+
+                    <tr id="row-{{ item.id }}">
+
+                        <td>
+                            {{ item.id }}
+                        </td>
+
+
+                        <!-- PRODUCT -->
+
+                        <td>
+
+                            <span class="display-value">
+                                {{ item.product_name }}
+                            </span>
+
+                            <input
+                                class="edit-input"
+                                type="text"
+                                name="product_name"
+                                value="{{ item.product_name }}"
+                                form="edit-form-{{ item.id }}"
+                                required
+                            >
+
+                        </td>
+
+
+                        <!-- BRAND -->
+
+                        <td>
+
+                            <span class="display-value">
+                                {{ item.brand or "-" }}
+                            </span>
+
+                            <input
+                                class="edit-input"
+                                type="text"
+                                name="brand"
+                                value="{{ item.brand or '' }}"
+                                form="edit-form-{{ item.id }}"
+                            >
+
+                        </td>
+
+
+                        <!-- BARCODE -->
+
+                        <td>
+
+                            <span class="display-value">
+                                {{ item.barcode or "-" }}
+                            </span>
+
+                            <input
+                                class="edit-input"
+                                type="text"
+                                name="barcode"
+                                value="{{ item.barcode or '' }}"
+                                form="edit-form-{{ item.id }}"
+                            >
+
+                        </td>
+
+
+                        <!-- PRICE -->
+
+                        <td>
+
+                            <span class="display-value">
+                                ${{ "%.2f"|format(item.price) }}
+                            </span>
+
+                            <input
+                                class="edit-input"
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                name="price"
+                                value="{{ item.price }}"
+                                form="edit-form-{{ item.id }}"
+                                required
+                            >
+
+                        </td>
+
+
+                        <!-- STOCK -->
+
+                        <td>
+
+                            <span class="display-value">
+                                {{ item.stock }}
+                            </span>
+
+                            <input
+                                class="edit-input"
+                                type="number"
+                                min="0"
+                                name="stock"
+                                value="{{ item.stock }}"
+                                form="edit-form-{{ item.id }}"
+                                required
+                            >
+
+                        </td>
+
+
+                        <!-- ACTIONS -->
+
+                        <td>
+
+                            <form
+                                id="edit-form-{{ item.id }}"
+                                action="/admin/edit/{{ item.id }}"
+                                method="POST"
+                            >
+                            </form>
+
+                            <div class="actions">
+
+                                <button
+                                    type="button"
+                                    class="edit-button"
+                                    onclick="enableEdit({{ item.id }})"
+                                >
+                                    Edit
+                                </button>
+
+
+                                <button
+                                    type="submit"
+                                    class="save-button button-success"
+                                    form="edit-form-{{ item.id }}"
+                                >
+                                    Save
+                                </button>
+
+
+                                <button
+                                    type="button"
+                                    class="cancel-button button-secondary"
+                                    onclick="cancelEdit({{ item.id }})"
+                                >
+                                    Cancel
+                                </button>
+
+
+                                <form
+                                    action="/admin/delete/{{ item.id }}"
+                                    method="POST"
+                                    onsubmit="return confirmDelete('{{ item.product_name }}')"
+                                >
+
+                                    <button
+                                        type="submit"
+                                        class="button-danger"
+                                    >
+                                        Delete
+                                    </button>
+
+                                </form>
+
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    {% else %}
+
+        <p>
+            No inventory items are currently available.
+        </p>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}
+
+
+{% block scripts %}
+
+<script>
+
+    function enableEdit(itemId) {
+
+        const row =
+            document.getElementById(
+                `row-${itemId}`
+            );
+
+        if (!row) {
+            return;
+        }
+
+        row.classList.add("editing");
+
+        const firstInput =
+            row.querySelector(".edit-input");
+
+        if (firstInput) {
+            firstInput.focus();
+        }
+
+    }
+
+
+    function cancelEdit(itemId) {
+
+        const row =
+            document.getElementById(
+                `row-${itemId}`
+            );
+
+        if (!row) {
+            return;
+        }
+
+        const inputs =
+            row.querySelectorAll(
+                ".edit-input"
+            );
+
+        inputs.forEach(input => {
+
+            input.value =
+                input.defaultValue;
+
+        });
+
+        row.classList.remove(
+            "editing"
+        );
+
+    }
+
+
+    function confirmDelete(productName) {
+
+        return confirm(
+            `Are you sure you want to delete ${productName}?`
+        );
+
+    }
+
+</script>
+
+{% endblock %}

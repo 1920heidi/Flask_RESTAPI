@@ -1,0 +1,393 @@
+{% extends "base.html" %}
+
+
+{% block title %}
+Inventory Script
+{% endblock %}
+
+
+{% block content %}
+
+
+<div class="page-header">
+
+    <h1>
+        Current Inventory
+    </h1>
+
+    <p>
+        View, update and delete inventory products.
+    </p>
+
+</div>
+
+
+
+<div class="card">
+
+
+    {% if inventory %}
+
+
+    <div class="table-wrapper">
+
+        <table>
+
+            <thead>
+
+                <tr>
+
+                    <th>
+                        ID
+                    </th>
+
+                    <th>
+                        Product
+                    </th>
+
+                    <th>
+                        Brand
+                    </th>
+
+                    <th>
+                        Barcode
+                    </th>
+
+                    <th>
+                        Price
+                    </th>
+
+                    <th>
+                        Stock
+                    </th>
+
+                    <th>
+                        Actions
+                    </th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody>
+
+
+                {% for item in inventory %}
+
+
+                <tr id="row-{{ item.id }}">
+
+
+                    <!-- ID -->
+
+                    <td>
+
+                        {{ item.id }}
+
+                    </td>
+
+
+
+                    <!-- PRODUCT -->
+
+                    <td>
+
+                        <span class="display-value">
+
+                            {{ item.product_name }}
+
+                        </span>
+
+
+                        <input
+                            class="edit-input"
+                            type="text"
+                            name="product_name"
+                            value="{{ item.product_name }}"
+                            form="edit-form-{{ item.id }}"
+                            required
+                        >
+
+                    </td>
+
+
+
+                    <!-- BRAND -->
+
+                    <td>
+
+                        <span class="display-value">
+
+                            {{ item.brand or "-" }}
+
+                        </span>
+
+
+                        <input
+                            class="edit-input"
+                            type="text"
+                            name="brand"
+                            value="{{ item.brand or '' }}"
+                            form="edit-form-{{ item.id }}"
+                        >
+
+                    </td>
+
+
+
+                    <!-- BARCODE -->
+
+                    <td>
+
+                        <span class="display-value">
+
+                            {{ item.barcode or "-" }}
+
+                        </span>
+
+
+                        <input
+                            class="edit-input"
+                            type="text"
+                            name="barcode"
+                            value="{{ item.barcode or '' }}"
+                            form="edit-form-{{ item.id }}"
+                        >
+
+                    </td>
+
+
+
+                    <!-- PRICE -->
+
+                    <td>
+
+                        <span class="display-value">
+
+                            ${{ "%.2f"|format(item.price) }}
+
+                        </span>
+
+
+                        <input
+                            class="edit-input"
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            name="price"
+                            value="{{ item.price }}"
+                            form="edit-form-{{ item.id }}"
+                            required
+                        >
+
+                    </td>
+
+
+
+                    <!-- STOCK -->
+
+                    <td>
+
+                        <span class="display-value">
+
+                            {{ item.stock }}
+
+                        </span>
+
+
+                        <input
+                            class="edit-input"
+                            type="number"
+                            min="0"
+                            name="stock"
+                            value="{{ item.stock }}"
+                            form="edit-form-{{ item.id }}"
+                            required
+                        >
+
+                    </td>
+
+
+
+                    <!-- ACTIONS -->
+
+                    <td>
+
+                        <form
+                            id="edit-form-{{ item.id }}"
+                            action="/admin/edit/{{ item.id }}"
+                            method="POST"
+                        >
+                        </form>
+
+
+                        <div class="actions">
+
+
+                            <button
+                                type="button"
+                                class="edit-button"
+                                onclick="enableEdit({{ item.id }})"
+                            >
+                                Edit
+                            </button>
+
+
+
+                            <button
+                                type="submit"
+                                class="save-button button-success"
+                                form="edit-form-{{ item.id }}"
+                            >
+                                Save
+                            </button>
+
+
+
+                            <button
+                                type="button"
+                                class="cancel-button button-secondary"
+                                onclick="cancelEdit({{ item.id }})"
+                            >
+                                Cancel
+                            </button>
+
+
+
+                            <form
+                                action="/admin/delete/{{ item.id }}"
+                                method="POST"
+                                onsubmit="return confirmDelete('{{ item.product_name }}')"
+                            >
+
+                                <button
+                                    type="submit"
+                                    class="button-danger"
+                                >
+                                    Delete
+                                </button>
+
+                            </form>
+
+
+                        </div>
+
+                    </td>
+
+
+                </tr>
+
+
+                {% endfor %}
+
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+
+    {% else %}
+
+
+    <p>
+        No inventory items are currently available.
+    </p>
+
+
+    {% endif %}
+
+
+</div>
+
+
+{% endblock %}
+
+
+
+{% block scripts %}
+
+
+<script>
+
+    function enableEdit(itemId) {
+
+        const row =
+            document.getElementById(
+                `row-${itemId}`
+            );
+
+
+        if (!row) {
+            return;
+        }
+
+
+        row.classList.add(
+            "editing"
+        );
+
+
+        const firstInput =
+            row.querySelector(
+                ".edit-input"
+            );
+
+
+        if (firstInput) {
+            firstInput.focus();
+        }
+
+    }
+
+
+
+    function cancelEdit(itemId) {
+
+        const row =
+            document.getElementById(
+                `row-${itemId}`
+            );
+
+
+        if (!row) {
+            return;
+        }
+
+
+        const inputs =
+            row.querySelectorAll(
+                ".edit-input"
+            );
+
+
+        inputs.forEach(input => {
+
+            input.value =
+                input.defaultValue;
+
+        });
+
+
+        row.classList.remove(
+            "editing"
+        );
+
+    }
+
+
+
+    function confirmDelete(productName) {
+
+        return confirm(
+            `Are you sure you want to delete ${productName}?`
+        );
+
+    }
+
+</script>
+
+
+{% endblock %}
